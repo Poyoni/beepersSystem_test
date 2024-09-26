@@ -23,3 +23,17 @@ export const readBeepersJsonFile = () => __awaiter(void 0, void 0, void 0, funct
     const beepers = yield jsonfile.readFile('./data/db.json');
     return beepers;
 });
+export const deleteBeeperFromJson = (beeperId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const beepers = yield jsonfile.readFile('./data/db.json');
+        const newBeepersArray = beepers.filter((b) => b.id !== beeperId);
+        yield jsonfile.writeFile('./data/db.json', newBeepersArray, function (err) {
+            if (err)
+                console.error(err);
+        });
+    }
+    catch (error) {
+        console.error("Error updating user's books:", error);
+        throw error;
+    }
+});

@@ -19,3 +19,21 @@ export const readBeepersJsonFile = async()=>{
     const beepers = await jsonfile.readFile('./data/db.json');
     return beepers;
 }
+
+export const deleteBeeperFromJson = async( beeperId: number) => {
+
+    try{
+    const beepers: Beeper[] = await jsonfile.readFile('./data/db.json')
+    
+    const newBeepersArray = beepers.filter((b: Beeper) => b.id !== beeperId);
+
+    await jsonfile.writeFile('./data/db.json', newBeepersArray, function (err) {
+        if (err) console.error(err)
+      })
+
+    }catch (error){
+        console.error("Error updating user's books:", error);
+        throw error;
+    }
+
+}

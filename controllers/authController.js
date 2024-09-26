@@ -9,11 +9,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 import { v4 as uuid4 } from 'uuid';
 import { BeeperStatus } from "../models/beeperType.js";
-import { writeBeeperToJsonFile, readBeepersJsonFile } from "../DAL/jsonBeeper.js";
+import { writeBeeperToJsonFile, readBeepersJsonFile, deleteBeeperFromJson } from "../DAL/jsonBeeper.js";
 export const createBeeper = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const ID = uuid4();
     try {
         const beeper = req.body;
-        beeper.id = parseInt(uuid4());
+        beeper.id = parseInt(ID);
         beeper.status = BeeperStatus.Manufactured;
         beeper.created_at = new Date();
         yield writeBeeperToJsonFile(beeper);
@@ -27,6 +28,51 @@ export const getAllBeepers = (req, res) => __awaiter(void 0, void 0, void 0, fun
     try {
         const beepers = yield readBeepersJsonFile();
         res.status(201).json({ beepers });
+    }
+    catch (err) {
+        console.error('Error:', err);
+        res.status(500).send(err.message);
+    }
+});
+export const getBeeperDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const beeperId = parseInt(req.params.id);
+    try {
+        const beepers = yield readBeepersJsonFile();
+        const beeperFind = beepers.find((b) => b.id === beeperId);
+        if (beeperFind) {
+            res.status(201).json({ beeperFind });
+        }
+        else {
+            res.status(404).send(`Beeper with ID ${beeperId} not found`);
+        }
+    }
+    catch (err) {
+        console.error('Error:', err);
+        res.status(500).send(err.message);
+    }
+});
+export const deleteBeeper = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const beeperId = parseInt(req.params.id);
+    try {
+        yield deleteBeeperFromJson(beeperId);
+        res.status(201).send();
+    }
+    catch (err) {
+        console.error('Error:', err);
+        res.status(500).send(err.message);
+    }
+});
+export const getBeeperByStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const status = req.params.status;
+    try {
+        const beepers = yield readBeepersJsonFile();
+        const newBeepersArray = beepers.filter((b) => b.status == status);
+        if (newBeepersArray.length > 0) {
+            res.status(201).json({ newBeepersArray });
+        }
+        else {
+            res.status(404).send(`not found`);
+        }
     }
     catch (err) {
         console.error('Error:', err);
