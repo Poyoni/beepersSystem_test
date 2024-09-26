@@ -1,13 +1,13 @@
 import { Request, Response } from "express";
 import { v4 as uuid4 } from 'uuid';
 import { Beeper, BeeperStatus } from "../models/beeperType.js";
-import {writeBeeperToJsonFile, readBeepersJsonFile, deleteBeeperFromJson } from "../DAL/jsonBeeper.js";
+import {writeBeeperToJsonFile, readBeepersJsonFile, deleteBeeperFromJson, changeStatus } from "../DAL/jsonBeeper.js";
 
 export const createBeeper = async (req:Request, res:Response) => {
-    const ID = uuid4();
+
     try{
         const beeper: Beeper = req.body;
-        beeper.id = parseInt(ID);
+        beeper.id = Math.floor(Math.random() * 10000); 
         beeper.status = BeeperStatus.Manufactured;
         beeper.created_at = new Date();
 
@@ -90,3 +90,21 @@ export const getBeeperByStatus = async (req:Request, res:Response) =>  {
     }  
 
 };
+
+export const updateStatusBeeper = async (req: Request, res:Response) => {
+
+    const beeperId: number = parseInt(req.params.id);
+    const LAT: number = req.body.LAT;
+    const LON: number = req.body.LON;
+
+    try {
+
+        await changeStatus(beeperId, LAT, LON);
+        res.status(201).send();
+        
+   } catch (err: any) {
+        console.error('Error:', err);
+        res.status(500).send(err.message);
+    } 
+
+}

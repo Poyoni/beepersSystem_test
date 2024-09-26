@@ -7,14 +7,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { v4 as uuid4 } from 'uuid';
 import { BeeperStatus } from "../models/beeperType.js";
-import { writeBeeperToJsonFile, readBeepersJsonFile, deleteBeeperFromJson } from "../DAL/jsonBeeper.js";
+import { writeBeeperToJsonFile, readBeepersJsonFile, deleteBeeperFromJson, changeStatus } from "../DAL/jsonBeeper.js";
 export const createBeeper = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const ID = uuid4();
     try {
         const beeper = req.body;
-        beeper.id = parseInt(ID);
+        beeper.id = Math.floor(Math.random() * 10000);
         beeper.status = BeeperStatus.Manufactured;
         beeper.created_at = new Date();
         yield writeBeeperToJsonFile(beeper);
@@ -73,6 +71,19 @@ export const getBeeperByStatus = (req, res) => __awaiter(void 0, void 0, void 0,
         else {
             res.status(404).send(`not found`);
         }
+    }
+    catch (err) {
+        console.error('Error:', err);
+        res.status(500).send(err.message);
+    }
+});
+export const updateStatusBeeper = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const beeperId = parseInt(req.params.id);
+    const LAT = req.body.LAT;
+    const LON = req.body.LON;
+    try {
+        yield changeStatus(beeperId, LAT, LON);
+        res.status(201).send();
     }
     catch (err) {
         console.error('Error:', err);

@@ -8,6 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 import jsonfile from 'jsonfile';
+import { BeeperStatus } from '../models/beeperType.js';
+import { checkLocation } from '../serves/serves.js';
 export const writeBeeperToJsonFile = (beeper) => __awaiter(void 0, void 0, void 0, function* () {
     jsonfile.readFile('./data/db.json')
         .then(beepers => {
@@ -35,5 +37,42 @@ export const deleteBeeperFromJson = (beeperId) => __awaiter(void 0, void 0, void
     catch (error) {
         console.error("Error updating user's books:", error);
         throw error;
+    }
+});
+export const changeStatus = (beeperId, LAT, LON) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const beepers = yield readBeepersJsonFile();
+        const beeperFind = beepers.find((b) => b.id === beeperId);
+        if (!beeperFind) {
+            console.error('Beeper not found');
+            return;
+        }
+        switch (beeperFind.status) {
+            case BeeperStatus.Manufactured:
+                beeperFind.status = BeeperStatus.Assembled;
+                break;
+            case BeeperStatus.Assembled:
+                beeperFind.status = BeeperStatus.Shipped;
+                break;
+            case BeeperStatus.Shipped:
+                if (checkLocation(LON, LAT)) {
+                    beeperFind.status = BeeperStatus.Deployed;
+                    yield jsonfile.writeFile('./data/db.json', beepers);
+                    setTimeout(() => {
+                        beeperFind.status = BeeperStatus.Detonated;
+                        beeperFind.exploded_at = new Date();
+                        jsonfile.writeFile('./data/db.json', beepers);
+                    }, 10000);
+                }
+                return;
+            default:
+                console.error('Invalid beeper status');
+                return;
+        }
+        yield jsonfile.writeFile('./data/db.json', beepers);
+    }
+    catch (err) {
+        console.error('Error:', err);
+        throw err;
     }
 });
